@@ -16,7 +16,7 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
 Install the Python dependencies:
 
 ```bash
-pip install pygame vgamepad
+pip install -r requirements.txt
 ```
 
 ## Usage
