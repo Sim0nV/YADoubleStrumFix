@@ -7,7 +7,9 @@
 
 Fixes double strums/overstrums in the same direction by filtering guitar inputs and outputting a separate virtual Xbox Controller.
 
-Tested using an overstrumming Xbox 360 Xplorer.
+Tested and working with my overstrumming Xplorer. 
+
+This fix is intended to prevent same-direction double strums/overstrums, not alternating-direction overstrumming.
 
 This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20excal07/CloneHeroStrumLimiter)** by 20excal07, which uses vJoy. Unfortunately [YARG](https://github.com/YARC-Official/YARG) does not seem to detect strum inputs from vJoy, leading to the creation of this program which uses ViGEmBus instead.
 
