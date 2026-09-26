@@ -26,13 +26,13 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
 
 ### If using YARG: Change your profile to use the virtual controller
 
-1. Go to **Profiles**
-2. Select your current guitar profile
-3. Select **Remove Device** and remove your current guitar/controller from the profile
-4. Select **Add Device** and add **Xbox Controller**
-5. Configure the Xbox Controller bindings for the virtual guitar inputs as necessary
+1. Go to **Profiles** and select your current guitar profile
+2. Select **Remove Device** and remove your current guitar/controller from the profile if it's there
+3. Select **Add Device** and add **Xbox Controller**
+4. Configure the Xbox Controller bindings for the virtual guitar inputs as necessary
     - **Default binds should work, EXCEPT for Star Power** which must be set to **RB** (can tilt the controller to set this)
     - Click **Controller Mapping** in YADoubleStrumFix to view virtual controller binds if needed
+5. Delete any other profiles that are using your guitar's device, if any exist
 
 ## Notes
 
