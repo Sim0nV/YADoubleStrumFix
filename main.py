@@ -430,6 +430,8 @@ class App:
         ]
 
         self.vars = {}
+        self.setting_entries = []
+        self.debug_checkbutton = None
 
         for row, (key, label, description) in enumerate(setting_rows):
             ttk.Label(
@@ -445,16 +447,18 @@ class App:
             var = tk.StringVar(value=str(self.config[key]))
             self.vars[key] = var
 
-            ttk.Entry(
+            entry = ttk.Entry(
                 settings,
                 textvariable=var,
                 width=12,
-            ).grid(
+            )
+            entry.grid(
                 row=row * 2,
                 column=1,
                 sticky="e",
                 pady=(4, 0),
             )
+            self.setting_entries.append(entry)
 
             ttk.Label(
                 settings,
@@ -471,11 +475,12 @@ class App:
 
         self.debug_var = tk.BooleanVar(value=self.config["debug"])
 
-        ttk.Checkbutton(
+        self.debug_checkbutton = ttk.Checkbutton(
             settings,
             text="Debug Logging",
             variable=self.debug_var,
-        ).grid(
+        )
+        self.debug_checkbutton.grid(
             row=len(setting_rows) * 2,
             column=0,
             columnspan=2,
@@ -516,17 +521,19 @@ class App:
         )
         self.stop_button.pack(side="left", padx=8)
 
-        ttk.Button(
+        self.mapping_button = ttk.Button(
             buttons,
             text="Controller Mapping",
             command=self.show_controller_mapping,
-        ).pack(side="left", padx=8)
+        )
+        self.mapping_button.pack(side="left", padx=8)
 
-        ttk.Button(
+        self.save_settings_button = ttk.Button(
             buttons,
             text="Save Settings",
             command=self.save_settings,
-        ).pack(side="right")
+        )
+        self.save_settings_button.pack(side="right")
 
         footer = ttk.Label(
             outer,
@@ -727,6 +734,14 @@ class App:
                     )
                     self.start_button.configure(state="disabled")
                     self.stop_button.configure(state="normal")
+                    self.controller_combo.configure(state="disabled")
+                    self.refresh_button.configure(state="disabled")
+                    for entry in self.setting_entries:
+                        entry.configure(state="disabled")
+                    if self.debug_checkbutton:
+                        self.debug_checkbutton.configure(state="disabled")
+                    self.save_settings_button.configure(state="disabled")
+                    self.mapping_button.configure(state="disabled")
 
                 elif kind == "stopped":
                     self.running = False
@@ -734,6 +749,14 @@ class App:
                     self.detail_status.set("")
                     self.start_button.configure(state="normal")
                     self.stop_button.configure(state="disabled")
+                    self.controller_combo.configure(state="readonly")
+                    self.refresh_button.configure(state="normal")
+                    for entry in self.setting_entries:
+                        entry.configure(state="normal")
+                    if self.debug_checkbutton:
+                        self.debug_checkbutton.configure(state="normal")
+                    self.save_settings_button.configure(state="normal")
+                    self.mapping_button.configure(state="normal")
 
                 elif kind == "ready":
                     self.detail_status.set(event[2])
@@ -746,6 +769,14 @@ class App:
                     self.virtual_status.set("● Virtual Xbox controller: unavailable")
                     self.start_button.configure(state="normal")
                     self.stop_button.configure(state="disabled")
+                    self.controller_combo.configure(state="readonly")
+                    self.refresh_button.configure(state="normal")
+                    for entry in self.setting_entries:
+                        entry.configure(state="normal")
+                    if self.debug_checkbutton:
+                        self.debug_checkbutton.configure(state="normal")
+                    self.save_settings_button.configure(state="normal")
+                    self.mapping_button.configure(state="normal")
                     messagebox.showerror("Virtual Controller Error", event[1])
 
                 elif kind == "fatal":
