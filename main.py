@@ -440,17 +440,42 @@ class App:
 
         def _on_mousewheel(event):
             try:
+                # If a combobox listbox is active anywhere, or mouse is over it
+                w = event.widget
+                while w:
+                    if "popdown" in str(w) or isinstance(w, tk.Listbox):
+                        return
+                    w = w.master
+            except Exception:
+                pass
+            try:
                 canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
             except Exception:
                 pass
 
         def _on_mousewheel_linux_up(event):
             try:
+                w = event.widget
+                while w:
+                    if "popdown" in str(w) or isinstance(w, tk.Listbox):
+                        return
+                    w = w.master
+            except Exception:
+                pass
+            try:
                 canvas.yview_scroll(-1, "units")
             except Exception:
                 pass
 
         def _on_mousewheel_linux_down(event):
+            try:
+                w = event.widget
+                while w:
+                    if "popdown" in str(w) or isinstance(w, tk.Listbox):
+                        return
+                    w = w.master
+            except Exception:
+                pass
             try:
                 canvas.yview_scroll(1, "units")
             except Exception:
@@ -488,9 +513,9 @@ class App:
         )
         self.controller_combo.pack(side="left", fill="x", expand=True)
         self.controller_combo.bind("<<ComboboxSelected>>", self.controller_selected)
-        self.controller_combo.bind("<MouseWheel>", lambda e: "break", add="+")
-        self.controller_combo.bind("<Button-4>", lambda e: "break", add="+")
-        self.controller_combo.bind("<Button-5>", lambda e: "break", add="+")
+        self.controller_combo.bind("<MouseWheel>", lambda e: "break")
+        self.controller_combo.bind("<Button-4>", lambda e: "break")
+        self.controller_combo.bind("<Button-5>", lambda e: "break")
 
         self.refresh_button = ttk.Button(
             controller_frame,
