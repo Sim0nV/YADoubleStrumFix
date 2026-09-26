@@ -18,6 +18,8 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
 3. Run YADoubleStrumFix.exe
 4. Select your guitar controller in the dropdown and click Start 
 
+<p align="center"><img alt="YADoubleStrumFix" src="https://github.com/user-attachments/assets/f725e2d1-9ed2-4ae3-b499-878c4c682930" height="600"></a></p>
+
 ### If using YARG: Change your profile to use the virtual controller
 
 1. Go to **Profiles**
