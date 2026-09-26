@@ -14,11 +14,8 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
 ## Usage
 
 1. Install [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)
-
 2. Download the latest [YADoubleStrumFix release](https://github.com/nefarius/ViGEmBus/releases)
-
 3. Run YADoubleStrumFix.exe
-
 4. Select your guitar controller in the dropdown and click Start 
 
 ### If using YARG: Change your profile to use the virtual controller
