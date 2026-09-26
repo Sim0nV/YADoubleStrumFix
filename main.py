@@ -432,6 +432,28 @@ class App:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
+        def _on_mousewheel(event):
+            try:
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            except Exception:
+                pass
+
+        def _on_mousewheel_linux_up(event):
+            try:
+                canvas.yview_scroll(-1, "units")
+            except Exception:
+                pass
+
+        def _on_mousewheel_linux_down(event):
+            try:
+                canvas.yview_scroll(1, "units")
+            except Exception:
+                pass
+
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        canvas.bind_all("<Button-4>", _on_mousewheel_linux_up)
+        canvas.bind_all("<Button-5>", _on_mousewheel_linux_down)
+
         title = ttk.Label(
             outer,
             text="Yet Another Double Strum Fix",
@@ -460,6 +482,9 @@ class App:
         )
         self.controller_combo.pack(side="left", fill="x", expand=True)
         self.controller_combo.bind("<<ComboboxSelected>>", self.controller_selected)
+        self.controller_combo.bind("<MouseWheel>", lambda e: "break", add="+")
+        self.controller_combo.bind("<Button-4>", lambda e: "break", add="+")
+        self.controller_combo.bind("<Button-5>", lambda e: "break", add="+")
 
         self.refresh_button = ttk.Button(
             controller_frame,
@@ -612,6 +637,9 @@ class App:
                 else:
                     combo = ttk.Combobox(mapping_frame, textvariable=self.mapping_vars[xbox_key], values=AVAILABLE_XBOX_BUTTONS, state="readonly", width=14)
                 combo.grid(row=row_idx, column=2, sticky="w", pady=3)
+                combo.bind("<MouseWheel>", lambda e: "break", add="+")
+                combo.bind("<Button-4>", lambda e: "break", add="+")
+                combo.bind("<Button-5>", lambda e: "break", add="+")
                 self.setting_entries.append(combo)
             else:
                 ttk.Label(mapping_frame, text="").grid(row=row_idx, column=2, sticky="w", pady=3)
