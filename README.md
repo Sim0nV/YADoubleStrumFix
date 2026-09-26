@@ -5,7 +5,7 @@
 
 ---
 
-Fixes double strums/overstrums in the same direction by filtering guitar inputs and outputting a separate virtual Xbox Controller.
+Fixes double strums/overstrums in the same direction by creating a virtual Xbox Controller which filters out the extra strums.
 
 Tested and working with my overstrumming Xplorer. 
 
