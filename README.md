@@ -1,7 +1,7 @@
 <p align="center"><img alt="YADoubleStrumFix" src="https://github.com/user-attachments/assets/3a1ff5cf-7b6b-407c-a370-3d45d6dcf36a" width="175" height="175"></a></p>
 
 <h1 align="center">YADoubleStrumFix: Yet Another Double Strum Fix</h1>
-<p align="center">Prevent same-direction double strums/overstrums in guitar controllers</p>
+<p align="center">Fix same-direction double strums/overstrums in guitar controllers</p>
 
 ---
 
@@ -9,9 +9,11 @@ Fixes double strums/overstrums in the same direction by filtering guitar inputs 
 
 Tested and working with my overstrumming Xplorer. 
 
-This fix is intended to prevent same-direction double strums/overstrums, not alternating-direction overstrumming.
+This was created because [YARG](https://github.com/YARC-Official/YARG) does not have a double strum prevention feature as of writing this.
 
-This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20excal07/CloneHeroStrumLimiter)** by 20excal07, which uses vJoy. Unfortunately [YARG](https://github.com/YARC-Official/YARG) does not seem to detect strum inputs from vJoy, leading to the creation of this program which uses ViGEmBus instead.
+Note that the fix is intended to prevent same-direction double strums/overstrums, **not** alternating-direction overstrumming.
+
+This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20excal07/CloneHeroStrumLimiter)** by 20excal07, which uses vJoy. Unfortunately YARG does not seem to detect strum inputs from vJoy, leading to the creation of this program which uses ViGEmBus instead.
 
 ## Usage
 
