@@ -13,7 +13,7 @@ from tkinter import ttk, messagebox
 
 
 APP_NAME = "YADoubleStrumFix"
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.3.0"
 APP_DATA_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "YADoubleStrumFix"
 APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -31,6 +31,9 @@ DEFAULTS = {
         "orange_button": 4,
         "select_button": 6,
         "start_button": 7,
+        "strum_hat": 0,
+        "strum_up_val": 1,
+        "strum_down_val": -1,
         "whammy_axis": 1,
         "whammy_deadzone": -0.95,
         "star_power_axis": 0,
@@ -311,11 +314,15 @@ class GuitarWorker:
                 else:
                     gamepad.release_button(button=sp_btn)
 
-        # Strum (Hat 0)
-        hat = guitar.get_hat(0) if guitar.get_numhats() > 0 else (0, 0)
-        if hat[1] > 0:
+        # Strum (Hat)
+        strum_hat_idx = mapping.get("strum_hat", 0)
+        up_val = mapping.get("strum_up_val", 1)
+        down_val = mapping.get("strum_down_val", -1)
+
+        hat = guitar.get_hat(strum_hat_idx) if strum_hat_idx < guitar.get_numhats() else (0, 0)
+        if hat[1] == up_val or hat[0] == up_val:
             current_strum = "up"
-        elif hat[1] < 0:
+        elif hat[1] == down_val or hat[0] == down_val:
             current_strum = "down"
         else:
             current_strum = None
@@ -398,8 +405,8 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title(APP_NAME)
-        self.root.geometry("600x900")
-        self.root.minsize(550, 750)
+        self.root.geometry("620x960")
+        self.root.minsize(580, 780)
 
         self.config = load_config()
         self.events = queue.Queue()
@@ -414,7 +421,6 @@ class App:
         self.root.protocol("WM_DELETE_WINDOW", self.close)
 
     def build_ui(self):
-        # Outer container with scrollbar or cleanly packed
         container = ttk.Frame(self.root)
         container.pack(fill="both", expand=True)
 
@@ -596,8 +602,9 @@ class App:
             ("Orange Fret Button ID", "orange_button", "orange_xbox", "button"),
             ("Select Button ID", "select_button", "select_xbox", "button"),
             ("Start Button ID", "start_button", "start_xbox", "button"),
-            ("Strum Up Output", None, "strum_up_xbox", "hat_up"),
-            ("Strum Down Output", None, "strum_down_xbox", "hat_down"),
+            ("Strum Hat ID", "strum_hat", None, "hat_id"),
+            ("Strum Up Hat Value (X or Y axis val)", "strum_up_val", "strum_up_xbox", "hat_val"),
+            ("Strum Down Hat Value (X or Y axis val)", "strum_down_val", "strum_down_xbox", "hat_val"),
             ("Whammy Axis ID", "whammy_axis", "whammy_xbox", "axis_whammy"),
             ("Whammy Deadzone", "whammy_deadzone", None, "deadzone"),
             ("Star Power Axis ID", "star_power_axis", "star_power_xbox", "axis_sp"),
@@ -621,6 +628,12 @@ class App:
                     val_str = str(current_mapping.get("whammy_deadzone", DEFAULTS["mapping"]["whammy_deadzone"]))
                 elif idx_key == "star_power_threshold":
                     val_str = str(current_mapping.get("star_power_threshold", DEFAULTS["mapping"]["star_power_threshold"]))
+                elif idx_key == "strum_hat":
+                    val_str = str(current_mapping.get("strum_hat", 0))
+                elif idx_key == "strum_up_val":
+                    val_str = str(current_mapping.get("strum_up_val", 1))
+                elif idx_key == "strum_down_val":
+                    val_str = str(current_mapping.get("strum_down_val", -1))
                 else:
                     val_str = "0"
                 self.mapping_vars[idx_key] = tk.StringVar(value=val_str)
@@ -628,7 +641,7 @@ class App:
                 entry.grid(row=row_idx, column=1, sticky="w", padx=10, pady=3)
                 self.setting_entries.append(entry)
             else:
-                ttk.Label(mapping_frame, text="(Hat 0)").grid(row=row_idx, column=1, sticky="w", padx=10, pady=3)
+                ttk.Label(mapping_frame, text="").grid(row=row_idx, column=1, sticky="w", padx=10, pady=3)
 
             if xbox_key is not None:
                 self.mapping_vars[xbox_key] = tk.StringVar(value=str(current_mapping.get(xbox_key, "")))
@@ -717,7 +730,7 @@ class App:
             current_mapping = self.config.get("mapping", DEFAULTS["mapping"]).copy()
             for key, var in self.mapping_vars.items():
                 val = var.get()
-                if key.endswith("_button") or key.endswith("_axis"):
+                if key.endswith("_button") or key.endswith("_axis") or key == "strum_hat" or key.endswith("_val"):
                     current_mapping[key] = int(val)
                 elif key in ("whammy_deadzone", "star_power_threshold"):
                     current_mapping[key] = float(val)
