@@ -30,10 +30,10 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
     - **Default binds should work, EXCEPT for Star Power** which must be set to **RB** (can tilt the controller to set this)
     - Click **Controller Mapping** in YADoubleStrumFix to view virtual controller binds if needed
 
-Notes:
+## Notes
 
+- **If inputs stop working after restarting the script**: Remove and re-add the virtual Xbox Controller device from your YARG profile 
 - Your guitar controller should NOT be used as the device in YARG, since that's the raw input which contains overstrums. Use the Xbox Controller device instead since that has the fix applied
-- If inputs stop working after restarting the script: you may have to add/remove the virtual Xbox Controller device from your YARG profile 
 
 ## Configuration
 
