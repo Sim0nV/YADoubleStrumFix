@@ -405,8 +405,8 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title(APP_NAME)
-        self.root.geometry("620x960")
-        self.root.minsize(580, 780)
+        self.root.geometry("640x780")
+        self.root.minsize(640, 780)
 
         self.config = load_config()
         self.events = queue.Queue()
@@ -614,12 +614,12 @@ class App:
         current_mapping = self.config.get("mapping", DEFAULTS["mapping"])
         self.mapping_vars = {}
 
-        ttk.Label(mapping_frame, text="Setting / Guitar Input", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, sticky="w", pady=(0, 6))
-        ttk.Label(mapping_frame, text="Guitar ID / Value", font=("Segoe UI", 9, "bold")).grid(row=0, column=1, sticky="w", padx=10, pady=(0, 6))
+        ttk.Label(mapping_frame, text="Setting / Guitar Input", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, sticky="w", padx=(0, 20), pady=(0, 6))
+        ttk.Label(mapping_frame, text="Guitar ID / Value", font=("Segoe UI", 9, "bold")).grid(row=0, column=1, sticky="w", padx=(0, 20), pady=(0, 6))
         ttk.Label(mapping_frame, text="Xbox Output", font=("Segoe UI", 9, "bold")).grid(row=0, column=2, sticky="w", pady=(0, 6))
 
         for row_idx, (label_name, idx_key, xbox_key, input_type) in enumerate(mapping_fields, start=1):
-            ttk.Label(mapping_frame, text=label_name).grid(row=row_idx, column=0, sticky="w", pady=3)
+            ttk.Label(mapping_frame, text=label_name).grid(row=row_idx, column=0, sticky="w", padx=(0, 10), pady=3)
 
             if idx_key is not None:
                 if idx_key in current_mapping:
@@ -638,10 +638,10 @@ class App:
                     val_str = "0"
                 self.mapping_vars[idx_key] = tk.StringVar(value=val_str)
                 entry = ttk.Entry(mapping_frame, textvariable=self.mapping_vars[idx_key], width=8)
-                entry.grid(row=row_idx, column=1, sticky="w", padx=10, pady=3)
+                entry.grid(row=row_idx, column=1, sticky="w", padx=(0, 20), pady=3)
                 self.setting_entries.append(entry)
             else:
-                ttk.Label(mapping_frame, text="").grid(row=row_idx, column=1, sticky="w", padx=10, pady=3)
+                ttk.Label(mapping_frame, text="").grid(row=row_idx, column=1, sticky="w", padx=(0, 10), pady=3)
 
             if xbox_key is not None:
                 self.mapping_vars[xbox_key] = tk.StringVar(value=str(current_mapping.get(xbox_key, "")))
@@ -650,14 +650,16 @@ class App:
                 else:
                     combo = ttk.Combobox(mapping_frame, textvariable=self.mapping_vars[xbox_key], values=AVAILABLE_XBOX_BUTTONS, state="readonly", width=14)
                 combo.grid(row=row_idx, column=2, sticky="w", pady=3)
-                combo.bind("<MouseWheel>", lambda e: "break", add="+")
-                combo.bind("<Button-4>", lambda e: "break", add="+")
-                combo.bind("<Button-5>", lambda e: "break", add="+")
+                combo.bind("<MouseWheel>", lambda e: "break")
+                combo.bind("<Button-4>", lambda e: "break")
+                combo.bind("<Button-5>", lambda e: "break")
                 self.setting_entries.append(combo)
             else:
                 ttk.Label(mapping_frame, text="").grid(row=row_idx, column=2, sticky="w", pady=3)
 
         mapping_frame.columnconfigure(0, weight=1)
+        mapping_frame.columnconfigure(1, weight=0)
+        mapping_frame.columnconfigure(2, weight=0)
 
         # Live Input Monitor Frame
         live_frame = ttk.LabelFrame(
