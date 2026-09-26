@@ -494,7 +494,7 @@ class App:
 
         subtitle = ttk.Label(
             outer,
-            text="Prevent same-direction double strumming on your guitar controller.",
+            text="Fix same-direction double strumming on your guitar controller",
         )
         subtitle.pack(anchor="w", pady=(0, 14))
 
@@ -552,17 +552,17 @@ class App:
             (
                 "strum_debounce",
                 "Strum Debounce",
-                "How long a strum must remain stable before it is recognized.",
+                "How long a strum must remain stable before it is recognized",
             ),
             (
                 "strum_cooldown",
                 "Strum Cooldown",
-                "Minimum time between recognized strums.",
+                "Minimum time between recognized strums",
             ),
             (
                 "poll_rate",
                 "Poll Rate",
-                "How often the controller is checked for input.",
+                "How often the controller is checked for input",
             ),
         ]
 
@@ -813,7 +813,7 @@ class App:
             if key in current_mapping:
                 var.set(str(current_mapping[key]))
 
-        self.detail_status.set("Settings reset to defaults.")
+        self.detail_status.set("Settings reset to defaults")
 
     def start(self):
         if not self.controllers:
