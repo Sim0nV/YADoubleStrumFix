@@ -1,7 +1,7 @@
 <p align="center"><img alt="YADoubleStrumFix" src="https://github.com/user-attachments/assets/3a1ff5cf-7b6b-407c-a370-3d45d6dcf36a" width="175" height="175"></a></p>
 
 <h1 align="center">YADoubleStrumFix: Yet Another Double Strum Fix</h1>
-<p align="center">Prevent double strums/overstrums occurring from same-direction strumming</p>
+<p align="center">Prevent same-direction double strums/overstrums in guitar controllers</p>
 
 ---
 
