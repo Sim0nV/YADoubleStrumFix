@@ -612,6 +612,10 @@ class App:
         window.title("Controller Mapping/Calibration")
         window.resizable(False, False)
         window.transient(self.root)
+        try:
+            window.iconbitmap(resource_path("icon.ico"))
+        except Exception:
+            pass
         self.mapping_window = window
 
         def on_close():
