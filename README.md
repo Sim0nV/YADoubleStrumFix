@@ -1,4 +1,4 @@
-<p align="center"><img alt="YADoubleStrumFix" src="https://github.com/user-attachments/assets/3a1ff5cf-7b6b-407c-a370-3d45d6dcf36a" width="175" height="175"></a></p>
+<p align="center"><img alt="YADoubleStrumFix Icon" src="https://github.com/user-attachments/assets/3a1ff5cf-7b6b-407c-a370-3d45d6dcf36a" width="175" height="175"></a></p>
 
 <h1 align="center">YADoubleStrumFix: Yet Another Double Strum Fix</h1>
 <p align="center">Fix same-direction double strums/overstrums in guitar controllers</p>
@@ -22,7 +22,7 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
 3. Run YADoubleStrumFix.exe
 4. Select your guitar controller in the dropdown and click Start
 
-<p align="center"><img alt="YADoubleStrumFix" src="https://github.com/user-attachments/assets/f725e2d1-9ed2-4ae3-b499-878c4c682930" height="600"></a></p>
+<p align="center"><img alt="YADoubleStrumFix Program" src="https://github.com/user-attachments/assets/68580b2c-57d4-4aac-80fa-7abf7cf4a1b3" height="450"></a></p>
 
 ### If using YARG: Change your profile to use the virtual controller
 
@@ -46,6 +46,8 @@ Settings can be directly configured in the app UI, including:
 - **Strum Cooldown**: Minimum time in milliseconds between recognized strums (default `30` ms)
 - **Poll Rate**: Controller polling frequency (default `250` Hz)
 - **Controller Mapping & Calibration**: Fully customizable fret button IDs, hat strum values, whammy deadzones, and tilt thresholds.
+
+<p align="center"><img alt="Controller Mapping UI" src="https://github.com/user-attachments/assets/d6c48345-d6a8-472c-abde-f5362af96913" height="400"></a></p>
 
 ## Development
 
