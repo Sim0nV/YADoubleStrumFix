@@ -20,8 +20,7 @@ APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 CONFIG_FILE = APP_DATA_DIR / "config.json"
 
 DEFAULTS = {
-    "strum_debounce": 0.015,
-    "strum_cooldown": 0.060,
+    "strum_cooldown": 30,  # in milliseconds
     "poll_rate": 250,
     "mapping": {
         "green_button": 0,
@@ -94,7 +93,6 @@ class ToolTip:
         self.text = text
         self.tipwindow = None
         self.id = None
-        self.x = self.y = 0
         self.widget.bind("<Enter>", self.enter)
         self.widget.bind("<Leave>", self.leave)
         self.widget.bind("<ButtonPress>", self.leave)
@@ -305,9 +303,6 @@ class GuitarWorker:
             self.gamepad = vg.VX360Gamepad()
             self.running = True
 
-            self.raw_strum = None
-            self.stable_strum = None
-            self.raw_changed_time = time.monotonic()
             self.virtual_strum = None
             self.last_strum_time = -999.0
 
@@ -401,40 +396,31 @@ class GuitarWorker:
             current_strum = None
 
         now = time.monotonic()
+        cooldown_sec = settings["strum_cooldown"] / 1000.0
+        up_name = mapping.get("strum_up_xbox", "D-pad Up")
+        down_name = mapping.get("strum_down_xbox", "D-pad Down")
+        up_btn = XBOX_BUTTON_MAP.get(up_name)
+        down_btn = XBOX_BUTTON_MAP.get(down_name)
 
-        if current_strum != self.raw_strum:
-            self.raw_strum = current_strum
-            self.raw_changed_time = now
-
-        if (
-            self.raw_strum != self.stable_strum
-            and now - self.raw_changed_time >= settings["strum_debounce"]
-        ):
-            self.stable_strum = self.raw_strum
-            up_name = mapping.get("strum_up_xbox", "D-pad Up")
-            down_name = mapping.get("strum_down_xbox", "D-pad Down")
-            up_btn = XBOX_BUTTON_MAP.get(up_name)
-            down_btn = XBOX_BUTTON_MAP.get(down_name)
-
-            if self.stable_strum is None:
-                if self.virtual_strum == "up" and up_btn is not None:
-                    gamepad.release_button(button=up_btn)
-                elif self.virtual_strum == "down" and down_btn is not None:
-                    gamepad.release_button(button=down_btn)
-                self.virtual_strum = None
-
-            elif now - self.last_strum_time >= settings["strum_cooldown"]:
+        if current_strum is None:
+            if self.virtual_strum == "up" and up_btn is not None:
+                gamepad.release_button(button=up_btn)
+            elif self.virtual_strum == "down" and down_btn is not None:
+                gamepad.release_button(button=down_btn)
+            self.virtual_strum = None
+        else:
+            if now - self.last_strum_time >= cooldown_sec:
                 if self.virtual_strum == "up" and up_btn is not None:
                     gamepad.release_button(button=up_btn)
                 elif self.virtual_strum == "down" and down_btn is not None:
                     gamepad.release_button(button=down_btn)
 
-                if self.stable_strum == "up" and up_btn is not None:
+                if current_strum == "up" and up_btn is not None:
                     gamepad.press_button(button=up_btn)
-                elif self.stable_strum == "down" and down_btn is not None:
+                elif current_strum == "down" and down_btn is not None:
                     gamepad.press_button(button=down_btn)
 
-                self.virtual_strum = self.stable_strum
+                self.virtual_strum = current_strum
                 self.last_strum_time = now
 
         # Whammy axis -> trigger
@@ -478,8 +464,8 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title(APP_NAME)
-        self.root.geometry("450x630")
-        self.root.minsize(450, 630)
+        self.root.geometry("450x580")
+        self.root.minsize(450, 580)
 
         self.config = load_config()
         self.events = queue.Queue()
@@ -563,14 +549,9 @@ class App:
 
         setting_rows = [
             (
-                "strum_debounce",
-                "Strum Debounce",
-                "How long a strum must remain stable before it is recognized.",
-            ),
-            (
                 "strum_cooldown",
-                "Strum Cooldown",
-                "Minimum time between recognized strums.",
+                "Strum Cooldown (ms)",
+                "Minimum time in milliseconds between recognized strums.",
             ),
             (
                 "poll_rate",
@@ -864,17 +845,13 @@ class App:
     def get_settings(self):
         try:
             settings = {
-                "strum_debounce": float(self.vars["strum_debounce"].get()),
-                "strum_cooldown": float(self.vars["strum_cooldown"].get()),
+                "strum_cooldown": int(self.vars["strum_cooldown"].get()),
                 "poll_rate": int(self.vars["poll_rate"].get()),
                 "mapping": self.config.get("mapping", DEFAULTS["mapping"]),
             }
 
-            if not 0 <= settings["strum_debounce"] <= 1:
-                raise ValueError("Strum debounce must be between 0 and 1.")
-
-            if not 0 <= settings["strum_cooldown"] <= 1:
-                raise ValueError("Strum cooldown must be between 0 and 1.")
+            if settings["strum_cooldown"] < 0:
+                raise ValueError("Strum cooldown must be 0 or greater.")
 
             if settings["poll_rate"] <= 0:
                 raise ValueError("Poll rate must be greater than zero.")
