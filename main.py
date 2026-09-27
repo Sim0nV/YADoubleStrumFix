@@ -13,7 +13,7 @@ from tkinter import ttk, messagebox
 
 
 APP_NAME = "YADoubleStrumFix"
-APP_VERSION = "1.3.0"
+APP_VERSION = "1.1.0"
 APP_DATA_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "YADoubleStrumFix"
 APP_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -405,14 +405,15 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title(APP_NAME)
-        self.root.geometry("640x780")
-        self.root.minsize(640, 780)
+        self.root.geometry("450x630")
+        self.root.minsize(450, 630)
 
         self.config = load_config()
         self.events = queue.Queue()
         self.worker = GuitarWorker(self.events)
         self.controllers = []
         self.running = False
+        self.mapping_window = None
 
         self.build_ui()
         self.worker.start_thread()
@@ -421,69 +422,8 @@ class App:
         self.root.protocol("WM_DELETE_WINDOW", self.close)
 
     def build_ui(self):
-        container = ttk.Frame(self.root)
-        container.pack(fill="both", expand=True)
-
-        canvas = tk.Canvas(container, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
-        outer = ttk.Frame(canvas, padding=18)
-
-        outer.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-        canvas.create_window((0, 0), window=outer, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        def _on_mousewheel(event):
-            try:
-                # If a combobox listbox is active anywhere, or mouse is over it
-                w = event.widget
-                while w:
-                    if "popdown" in str(w) or isinstance(w, tk.Listbox):
-                        return
-                    w = w.master
-            except Exception:
-                pass
-            try:
-                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-            except Exception:
-                pass
-
-        def _on_mousewheel_linux_up(event):
-            try:
-                w = event.widget
-                while w:
-                    if "popdown" in str(w) or isinstance(w, tk.Listbox):
-                        return
-                    w = w.master
-            except Exception:
-                pass
-            try:
-                canvas.yview_scroll(-1, "units")
-            except Exception:
-                pass
-
-        def _on_mousewheel_linux_down(event):
-            try:
-                w = event.widget
-                while w:
-                    if "popdown" in str(w) or isinstance(w, tk.Listbox):
-                        return
-                    w = w.master
-            except Exception:
-                pass
-            try:
-                canvas.yview_scroll(1, "units")
-            except Exception:
-                pass
-
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)
-        canvas.bind_all("<Button-4>", _on_mousewheel_linux_up)
-        canvas.bind_all("<Button-5>", _on_mousewheel_linux_down)
+        outer = ttk.Frame(self.root, padding=18)
+        outer.pack(fill="both", expand=True)
 
         title = ttk.Label(
             outer,
@@ -494,7 +434,7 @@ class App:
 
         subtitle = ttk.Label(
             outer,
-            text="Fix same-direction double strumming on your guitar controller",
+            text="Prevent same-direction double strumming on your guitar controller.",
         )
         subtitle.pack(anchor="w", pady=(0, 14))
 
@@ -552,17 +492,17 @@ class App:
             (
                 "strum_debounce",
                 "Strum Debounce",
-                "How long a strum must remain stable before it is recognized",
+                "How long a strum must remain stable before it is recognized.",
             ),
             (
                 "strum_cooldown",
                 "Strum Cooldown",
-                "Minimum time between recognized strums",
+                "Minimum time between recognized strums.",
             ),
             (
                 "poll_rate",
                 "Poll Rate",
-                "How often the controller is checked for input",
+                "How often the controller is checked for input.",
             ),
         ]
 
@@ -600,7 +540,7 @@ class App:
                 settings,
                 text=description,
                 foreground="#777777",
-                wraplength=450,
+                wraplength=380,
             ).grid(
                 row=row * 2 + 1,
                 column=0,
@@ -611,13 +551,100 @@ class App:
 
         settings.columnconfigure(0, weight=1)
 
-        # Controller Mapping Section in main app
-        mapping_frame = ttk.LabelFrame(
-            outer,
-            text="Controller Mapping & Calibration",
-            padding=12,
+        buttons = ttk.Frame(outer)
+        buttons.pack(fill="x", pady=(18, 0))
+
+        self.mapping_button = ttk.Button(
+            buttons,
+            text="Controller Mapping/Calibration",
+            command=self.show_controller_mapping,
         )
-        mapping_frame.pack(fill="x", pady=(0, 10))
+        self.mapping_button.pack(side="right")
+
+        self.setting_entries.append(self.mapping_button)
+
+        save_reset_frame = ttk.Frame(outer)
+        save_reset_frame.pack(fill="x", pady=(10, 0))
+
+        self.start_button = ttk.Button(
+            save_reset_frame,
+            text="Start",
+            command=self.start,
+        )
+        self.start_button.pack(side="left")
+
+        self.stop_button = ttk.Button(
+            save_reset_frame,
+            text="Stop",
+            command=self.stop,
+            state="disabled",
+        )
+        self.stop_button.pack(side="left", padx=8)
+
+        self.save_settings_button = ttk.Button(
+            save_reset_frame,
+            text="Save Settings",
+            command=self.save_settings,
+        )
+        self.save_settings_button.pack(side="right")
+
+        self.reset_button = ttk.Button(
+            save_reset_frame,
+            text="Reset to Defaults",
+            command=self.reset_defaults,
+        )
+        self.reset_button.pack(side="right", padx=8)
+        self.setting_entries.append(self.reset_button)
+
+        footer = ttk.Label(
+            outer,
+            text=f"by Sim0nV  •  v{APP_VERSION}",
+            foreground="#777777",
+        )
+        footer.pack(side="bottom", anchor="e", pady=(12, 0))
+
+    def show_controller_mapping(self):
+        if self.mapping_window is not None and self.mapping_window.winfo_exists():
+            self.mapping_window.lift()
+            return
+
+        window = tk.Toplevel(self.root)
+        window.title("Controller Mapping/Calibration")
+        window.resizable(False, False)
+        window.transient(self.root)
+        self.mapping_window = window
+
+        def on_close():
+            window.destroy()
+            self.mapping_window = None
+
+        window.protocol("WM_DELETE_WINDOW", on_close)
+
+        main_frame = ttk.Frame(window, padding=16)
+        main_frame.pack(fill="both", expand=True)
+
+        left_frame = ttk.Frame(main_frame)
+        left_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+        ttk.Label(
+            left_frame,
+            text="Controller Mapping/Calibration",
+            font=("Segoe UI", 14, "bold"),
+        ).pack(anchor="w", pady=(0, 12))
+
+        canvas = tk.Canvas(left_frame, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(left_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
         mapping_fields = [
             ("Green Fret Button ID", "green_button", "green_xbox", "button"),
@@ -628,8 +655,8 @@ class App:
             ("Select Button ID", "select_button", "select_xbox", "button"),
             ("Start Button ID", "start_button", "start_xbox", "button"),
             ("Strum Hat ID", "strum_hat", None, "hat_id"),
-            ("Strum Up Hat Value (X or Y axis val)", "strum_up_val", "strum_up_xbox", "hat_val"),
-            ("Strum Down Hat Value (X or Y axis val)", "strum_down_val", "strum_down_xbox", "hat_val"),
+            ("Strum Up Hat Value", "strum_up_val", "strum_up_xbox", "hat_val"),
+            ("Strum Down Hat Value", "strum_down_val", "strum_down_xbox", "hat_val"),
             ("Whammy Axis ID", "whammy_axis", "whammy_xbox", "axis_whammy"),
             ("Whammy Deadzone", "whammy_deadzone", None, "deadzone"),
             ("Star Power Axis ID", "star_power_axis", "star_power_xbox", "axis_sp"),
@@ -639,12 +666,12 @@ class App:
         current_mapping = self.config.get("mapping", DEFAULTS["mapping"])
         self.mapping_vars = {}
 
-        ttk.Label(mapping_frame, text="Setting / Guitar Input", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, sticky="w", padx=(0, 20), pady=(0, 6))
-        ttk.Label(mapping_frame, text="Guitar ID / Value", font=("Segoe UI", 9, "bold")).grid(row=0, column=1, sticky="w", padx=(0, 20), pady=(0, 6))
-        ttk.Label(mapping_frame, text="Xbox Output", font=("Segoe UI", 9, "bold")).grid(row=0, column=2, sticky="w", pady=(0, 6))
+        ttk.Label(scrollable_frame, text="Setting / Input", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, sticky="w", padx=(0, 20), pady=(0, 6))
+        ttk.Label(scrollable_frame, text="Guitar ID / Val", font=("Segoe UI", 9, "bold")).grid(row=0, column=1, sticky="w", padx=(0, 20), pady=(0, 6))
+        ttk.Label(scrollable_frame, text="Xbox Output", font=("Segoe UI", 9, "bold")).grid(row=0, column=2, sticky="w", pady=(0, 6))
 
         for row_idx, (label_name, idx_key, xbox_key, input_type) in enumerate(mapping_fields, start=1):
-            ttk.Label(mapping_frame, text=label_name).grid(row=row_idx, column=0, sticky="w", padx=(0, 10), pady=3)
+            ttk.Label(scrollable_frame, text=label_name).grid(row=row_idx, column=0, sticky="w", padx=(0, 20), pady=3)
 
             if idx_key is not None:
                 if idx_key in current_mapping:
@@ -662,80 +689,76 @@ class App:
                 else:
                     val_str = "0"
                 self.mapping_vars[idx_key] = tk.StringVar(value=val_str)
-                entry = ttk.Entry(mapping_frame, textvariable=self.mapping_vars[idx_key], width=8)
+                entry = ttk.Entry(scrollable_frame, textvariable=self.mapping_vars[idx_key], width=8)
                 entry.grid(row=row_idx, column=1, sticky="w", padx=(0, 20), pady=3)
-                self.setting_entries.append(entry)
             else:
-                ttk.Label(mapping_frame, text="").grid(row=row_idx, column=1, sticky="w", padx=(0, 10), pady=3)
+                ttk.Label(scrollable_frame, text="").grid(row=row_idx, column=1, sticky="w", padx=(0, 20), pady=3)
 
             if xbox_key is not None:
                 self.mapping_vars[xbox_key] = tk.StringVar(value=str(current_mapping.get(xbox_key, "")))
                 if "whammy" in xbox_key:
-                    combo = ttk.Combobox(mapping_frame, textvariable=self.mapping_vars[xbox_key], values=AVAILABLE_XBOX_TRIGGERS, state="readonly", width=14)
+                    combo = ttk.Combobox(scrollable_frame, textvariable=self.mapping_vars[xbox_key], values=AVAILABLE_XBOX_TRIGGERS, state="readonly", width=14)
                 else:
-                    combo = ttk.Combobox(mapping_frame, textvariable=self.mapping_vars[xbox_key], values=AVAILABLE_XBOX_BUTTONS, state="readonly", width=14)
+                    combo = ttk.Combobox(scrollable_frame, textvariable=self.mapping_vars[xbox_key], values=AVAILABLE_XBOX_BUTTONS, state="readonly", width=14)
                 combo.grid(row=row_idx, column=2, sticky="w", pady=3)
                 combo.bind("<MouseWheel>", lambda e: "break")
                 combo.bind("<Button-4>", lambda e: "break")
                 combo.bind("<Button-5>", lambda e: "break")
-                self.setting_entries.append(combo)
             else:
-                ttk.Label(mapping_frame, text="").grid(row=row_idx, column=2, sticky="w", pady=3)
+                ttk.Label(scrollable_frame, text="").grid(row=row_idx, column=2, sticky="w", pady=3)
 
-        mapping_frame.columnconfigure(0, weight=1)
-        mapping_frame.columnconfigure(1, weight=0)
-        mapping_frame.columnconfigure(2, weight=0)
+        # Right side: Live Input Monitor
+        right_frame = ttk.LabelFrame(main_frame, text="Live Guitar Inputs Monitor", padding=10)
+        right_frame.pack(side="right", fill="both", expand=False)
 
-        # Live Input Monitor Frame
-        live_frame = ttk.LabelFrame(
-            outer,
-            text="Live Guitar Inputs Monitor",
-            padding=10,
-        )
-        live_frame.pack(fill="x", pady=(0, 10))
+        self.input_log_text = tk.Text(right_frame, width=32, height=22, state="disabled", wrap="none", font=("Consolas", 9))
+        self.input_log_text.pack(side="left", fill="both", expand=True)
+        log_scroll = ttk.Scrollbar(right_frame, orient="vertical", command=self.input_log_text.yview)
+        log_scroll.pack(side="right", fill="y")
+        self.input_log_text.configure(yscrollcommand=log_scroll.set)
 
-        self.input_log_text = tk.Text(live_frame, height=5, state="disabled", wrap="none", font=("Consolas", 9))
-        self.input_log_text.pack(fill="x", expand=True)
+        btn_frame = ttk.Frame(window, padding=16)
+        btn_frame.pack(fill="x", side="bottom")
 
-        buttons = ttk.Frame(outer)
-        buttons.pack(fill="x", pady=(10, 0))
+        ttk.Button(
+            btn_frame,
+            text="Save Mapping",
+            command=lambda: self.save_mapping_from_window(window),
+        ).pack(side="left")
 
-        self.start_button = ttk.Button(
-            buttons,
-            text="Start",
-            command=self.start,
-        )
-        self.start_button.pack(side="left")
+        ttk.Button(
+            btn_frame,
+            text="Close",
+            command=on_close,
+        ).pack(side="right")
 
-        self.stop_button = ttk.Button(
-            buttons,
-            text="Stop",
-            command=self.stop,
-            state="disabled",
-        )
-        self.stop_button.pack(side="left", padx=8)
+        window.update_idletasks()
+        width = 720
+        height = 600
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        window.geometry(f"{width}x{height}+{x}+{y}")
+        window.minsize(680, 500)
 
-        self.save_settings_button = ttk.Button(
-            buttons,
-            text="Save Settings",
-            command=self.save_settings,
-        )
-        self.save_settings_button.pack(side="right")
+    def save_mapping_from_window(self, window):
+        try:
+            new_mapping = self.config.get("mapping", DEFAULTS["mapping"]).copy()
+            for key, var in self.mapping_vars.items():
+                val = var.get()
+                if key.endswith("_button") or key.endswith("_axis") or key == "strum_hat" or key.endswith("_val"):
+                    new_mapping[key] = int(val)
+                elif key in ("whammy_deadzone", "star_power_threshold"):
+                    new_mapping[key] = float(val)
+                else:
+                    new_mapping[key] = val
 
-        self.reset_button = ttk.Button(
-            buttons,
-            text="Reset to Defaults",
-            command=self.reset_defaults,
-        )
-        self.reset_button.pack(side="right", padx=8)
-        self.setting_entries.append(self.reset_button)
-
-        footer = ttk.Label(
-            outer,
-            text=f"by Sim0nV  •  v{APP_VERSION}",
-            foreground="#777777",
-        )
-        footer.pack(anchor="e", pady=(12, 0))
+            self.config["mapping"] = new_mapping
+            save_config(self.config)
+            messagebox.showinfo("Success", "Controller mapping saved successfully!", parent=window)
+        except ValueError as exc:
+            messagebox.showerror("Invalid Input", f"Please enter valid numeric indices for buttons/axes.\nDetails: {exc}", parent=window)
 
     def controller_selected(self, _event=None):
         index = self.controller_combo.current()
@@ -751,20 +774,8 @@ class App:
                 "strum_debounce": float(self.vars["strum_debounce"].get()),
                 "strum_cooldown": float(self.vars["strum_cooldown"].get()),
                 "poll_rate": int(self.vars["poll_rate"].get()),
-                "mapping": {},
+                "mapping": self.config.get("mapping", DEFAULTS["mapping"]),
             }
-
-            current_mapping = self.config.get("mapping", DEFAULTS["mapping"]).copy()
-            for key, var in self.mapping_vars.items():
-                val = var.get()
-                if key.endswith("_button") or key.endswith("_axis") or key == "strum_hat" or key.endswith("_val"):
-                    current_mapping[key] = int(val)
-                elif key in ("whammy_deadzone", "star_power_threshold"):
-                    current_mapping[key] = float(val)
-                else:
-                    current_mapping[key] = val
-
-            settings["mapping"] = current_mapping
 
             if not 0 <= settings["strum_debounce"] <= 1:
                 raise ValueError("Strum debounce must be between 0 and 1.")
@@ -774,12 +785,6 @@ class App:
 
             if settings["poll_rate"] <= 0:
                 raise ValueError("Poll rate must be greater than zero.")
-
-            if not -1 <= current_mapping["whammy_deadzone"] < 1:
-                raise ValueError("Whammy deadzone must be between -1 and 1.")
-
-            if not (0 < current_mapping["star_power_threshold"] <= 1):
-                raise ValueError("Star Power threshold must be greater than 0 and at most 1.")
 
             return settings
 
@@ -808,12 +813,7 @@ class App:
             if key in DEFAULTS:
                 var.set(str(DEFAULTS[key]))
 
-        current_mapping = self.config["mapping"]
-        for key, var in self.mapping_vars.items():
-            if key in current_mapping:
-                var.set(str(current_mapping[key]))
-
-        self.detail_status.set("Settings reset to defaults")
+        self.detail_status.set("Settings reset to defaults.")
 
     def start(self):
         if not self.controllers:
@@ -864,23 +864,24 @@ class App:
                         self.guitar_status.set("● No controllers detected")
 
                 elif kind == "input_log":
-                    if hasattr(self, "input_log_text") and self.input_log_text.winfo_exists():
+                    if self.mapping_window is not None and self.mapping_window.winfo_exists() and hasattr(self, "input_log_text"):
                         buttons_state, axes_state, hats_state = event[1], event[2], event[3]
-                        log_parts = []
-                        pressed_btns = [str(b) for b, pressed in sorted(buttons_state.items()) if pressed]
-                        if pressed_btns:
-                            log_parts.append(f"Buttons: {', '.join(pressed_btns)}")
-                        active_axes = [f"A{a}: {val}" for a, val in sorted(axes_state.items()) if abs(val) > 0.05]
-                        if active_axes:
-                            log_parts.append(f"Axes: {', '.join(active_axes)}")
-                        active_hats = [f"H{h}: {val}" for h, val in sorted(hats_state.items()) if val != (0, 0)]
-                        if active_hats:
-                            log_parts.append(f"Hats: {', '.join(active_hats)}")
+                        log_lines = ["Buttons:"]
+                        for b_idx, pressed in sorted(buttons_state.items()):
+                            if pressed:
+                                log_lines.append(f"  [{b_idx}]: PRESSED")
+                        log_lines.append("Axes:")
+                        for a_idx, val in sorted(axes_state.items()):
+                            if abs(val) > 0.05:
+                                log_lines.append(f"  Axis {a_idx}: {val}")
+                        log_lines.append("Hats:")
+                        for h_idx, h_val in sorted(hats_state.items()):
+                            if h_val != (0, 0):
+                                log_lines.append(f"  Hat {h_idx}: {h_val}")
 
-                        log_str = " | ".join(log_parts) if log_parts else "No input detected (resting)"
                         self.input_log_text.configure(state="normal")
                         self.input_log_text.delete("1.0", tk.END)
-                        self.input_log_text.insert("1.0", log_str)
+                        self.input_log_text.insert("1.0", "\n".join(log_lines))
                         self.input_log_text.configure(state="disabled")
 
                 elif kind == "running":
