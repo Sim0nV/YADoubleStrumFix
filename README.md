@@ -7,7 +7,7 @@
 
 Fixes double strums/overstrums in the same direction by creating a virtual Xbox Controller which filters out the extra strums.
 
-Tested and working with my overstrumming Xplorer. 
+Tested and working with my overstrumming Xplorer.
 
 This was created because [YARG](https://github.com/YARC-Official/YARG) does not have a double strum prevention feature as of writing this.
 
@@ -20,7 +20,7 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
 1. Install [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)
 2. Download the latest [YADoubleStrumFix release](https://github.com/Sim0nV/YADoubleStrumFix/releases)
 3. Run YADoubleStrumFix.exe
-4. Select your guitar controller in the dropdown and click Start 
+4. Select your guitar controller in the dropdown and click Start
 
 <p align="center"><img alt="YADoubleStrumFix" src="https://github.com/user-attachments/assets/f725e2d1-9ed2-4ae3-b499-878c4c682930" height="600"></a></p>
 
@@ -30,25 +30,22 @@ This project was inspired by **[CloneHeroStrumLimiter](https://github.com/20exca
 2. Select **Remove Device** and remove your current guitar/controller from the profile if it's there
 3. Select **Add Device** and add **Xbox Controller**
 4. Configure the Xbox Controller bindings for the virtual guitar inputs as necessary
-    - **Default binds should work, EXCEPT for Star Power** which must be set to **RB** (can tilt the controller to set this)
-    - Click **Controller Mapping** in YADoubleStrumFix to view virtual controller binds if needed
+   - **Default binds should work, EXCEPT for Star Power** which must be set to your configured Star Power output (default `RB`, can tilt the controller to set this)
+   - Click **Controller Mapping/Calibration** in YADoubleStrumFix to view or customize virtual controller binds and view live guitar inputs
 5. Delete any other profiles that are using your guitar's device, if any exist
 
 ## Notes
 
-- **If inputs stop working after restarting the script**: Remove and re-add the virtual Xbox Controller device from your YARG profile 
+- **If inputs stop working after restarting the script**: Remove and re-add the virtual Xbox Controller device from your YARG profile
 - Your guitar controller should NOT be used as the device in YARG, since that's the raw input which contains overstrums. Use the Xbox Controller device instead since that has the fix applied
 
 ## Configuration
 
-| Constant               | Default | Description                            |
-| ---------------------- | ------: | -------------------------------------- |
-| `STRUM_DEBOUNCE`       | `0.015` | Time required for a stable strum state |
-| `STRUM_COOLDOWN`       | `0.060` | Minimum time between accepted strums   |
-| `POLL_RATE`            |   `250` | Controller polling frequency           |
-| `WHAMMY_DEADZONE`      | `-0.95` | Whammy resting/deadzone threshold      |
-| `STAR_POWER_THRESHOLD` |   `0.9` | Tilt activation threshold (sends RB when met)                  |
-| `DEBUG`                | `False` | Diagnostic console output (slows down script, not intended for normal gameplay) |
+Settings can be directly configured in the app UI, including:
+
+- **Strum Cooldown**: Minimum time in milliseconds between recognized strums (default `30` ms)
+- **Poll Rate**: Controller polling frequency (default `250` Hz)
+- **Controller Mapping & Calibration**: Fully customizable fret button IDs, hat strum values, whammy deadzones, and tilt thresholds.
 
 ## Development
 
@@ -59,7 +56,8 @@ pip install -r requirements.txt
 python main.py
 ```
 
-To create ``dist\YADoubleStrumFix.exe``, run:
+To create `dist\YADoubleStrumFix.exe`, run:
+
 ```powershell
 .\build.ps1
 ```
