@@ -70,6 +70,79 @@ XBOX_BUTTON_MAP = {
 AVAILABLE_XBOX_BUTTONS = list(XBOX_BUTTON_MAP.keys())
 AVAILABLE_XBOX_TRIGGERS = ["Left Trigger", "Right Trigger", "None"]
 
+TOOLTIPS = {
+    "green_button": "Physical button index on your guitar controller for the Green fret.",
+    "red_button": "Physical button index on your guitar controller for the Red fret.",
+    "yellow_button": "Physical button index on your guitar controller for the Yellow fret.",
+    "blue_button": "Physical button index on your guitar controller for the Blue fret.",
+    "orange_button": "Physical button index on your guitar controller for the Orange fret.",
+    "select_button": "Physical button index for the Select / Back button.",
+    "start_button": "Physical button index for the Start button.",
+    "strum_hat": "Hat index used for strumming (usually Hat 0).",
+    "strum_up_val": "Axis value from the hat representing Strum Up (e.g. 1).",
+    "strum_down_val": "Axis value from the hat representing Strum Down (e.g. -1).",
+    "whammy_axis": "Joystick axis index assigned to the Whammy bar.",
+    "whammy_deadzone": "Threshold below which whammy movement is ignored (fully released).",
+    "star_power_axis": "Joystick axis index assigned to guitar tilt / Star Power.",
+    "star_power_threshold": "Tilt threshold above which Star Power triggers.",
+}
+
+
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+        self.widget.bind("<ButtonPress>", self.leave)
+
+    def enter(self, event=None):
+        self.schedule()
+
+    def leave(self, event=None):
+        self.unschedule()
+        self.hidetip()
+
+    def schedule(self):
+        self.unschedule()
+        self.id = self.widget.after(500, self.showtip)
+
+    def unschedule(self):
+        id_ = self.id
+        self.id = None
+        if id_:
+            self.widget.after_cancel(id_)
+
+    def showtip(self, event=None):
+        if self.tipwindow or not self.text:
+            return
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+        self.tipwindow = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            tw,
+            text=self.text,
+            justify=tk.LEFT,
+            background="#ffffe0",
+            relief=tk.SOLID,
+            borderwidth=1,
+            font=("Segoe UI", 9),
+            padx=6,
+            pady=4,
+        )
+        label.pack(fill=tk.BOTH, expand=True)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
 
 def axis_to_trigger(value, minimum=-1.0, maximum=1.0):
     if maximum <= minimum:
@@ -675,7 +748,19 @@ class App:
         ttk.Label(scrollable_frame, text="Xbox Output", font=("Segoe UI", 9, "bold")).grid(row=0, column=2, sticky="w", pady=(0, 6))
 
         for row_idx, (label_name, idx_key, xbox_key, input_type) in enumerate(mapping_fields, start=1):
-            ttk.Label(scrollable_frame, text=label_name).grid(row=row_idx, column=0, sticky="w", padx=(0, 20), pady=3)
+            lbl = ttk.Label(scrollable_frame, text=label_name)
+            lbl.grid(row=row_idx, column=0, sticky="w", padx=(0, 20), pady=3)
+
+            tip_text = None
+            if idx_key and idx_key in TOOLTIPS:
+                tip_text = TOOLTIPS[idx_key]
+            elif xbox_key and xbox_key in TOOLTIPS:
+                tip_text = TOOLTIPS[xbox_key]
+            else:
+                tip_text = TOOLTIPS.get(label_name.lower().replace(" ", "_"), f"Configuration for {label_name}.")
+
+            if tip_text:
+                ToolTip(lbl, tip_text)
 
             if idx_key is not None:
                 if idx_key in current_mapping:
@@ -695,6 +780,8 @@ class App:
                 self.mapping_vars[idx_key] = tk.StringVar(value=val_str)
                 entry = ttk.Entry(scrollable_frame, textvariable=self.mapping_vars[idx_key], width=8)
                 entry.grid(row=row_idx, column=1, sticky="w", padx=(0, 20), pady=3)
+                if tip_text:
+                    ToolTip(entry, tip_text)
             else:
                 ttk.Label(scrollable_frame, text="").grid(row=row_idx, column=1, sticky="w", padx=(0, 20), pady=3)
 
@@ -708,6 +795,8 @@ class App:
                 combo.bind("<MouseWheel>", lambda e: "break")
                 combo.bind("<Button-4>", lambda e: "break")
                 combo.bind("<Button-5>", lambda e: "break")
+                if tip_text:
+                    ToolTip(combo, tip_text)
             else:
                 ttk.Label(scrollable_frame, text="").grid(row=row_idx, column=2, sticky="w", pady=3)
 
