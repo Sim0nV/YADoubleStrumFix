@@ -958,8 +958,9 @@ class App:
                     self.running = True
                     self.guitar_status.set(f"● Guitar connected: {event[1]}")
                     self.virtual_status.set("● Virtual Xbox 360 controller: ACTIVE")
+                    sp_output = self.config.get("mapping", DEFAULTS["mapping"]).get("star_power_xbox", "RB")
                     self.detail_status.set(
-                        "In YARG: Use Xbox Controller as the device and bind Star Power to RB,\n"
+                        f"In YARG: Use Xbox Controller as the device and bind Star Power to {sp_output},\n"
                         "then disable other profiles using the non-virtual controller as necessary.\n"
                         "You may have to remove and re-add the Xbox Controller to your profile."
                     )
